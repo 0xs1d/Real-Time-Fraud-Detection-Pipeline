@@ -1,0 +1,75 @@
+jobs:
+  - stepId: run_spark_etl # The name used to reference this job in the parameters section
+    pysparkJob:
+      mainPythonFileUri: gs://${GCS_BUCKET}/pyspark_jobs/${TEMPLATE_ID}/main.py
+      pythonFileUris:
+      - gs://${GCS_BUCKET}/pyspark_jobs/${TEMPLATE_ID}/etl_job.zip
+      jarFileUris:
+      - gs://spark-lib/bigquery/spark-bigquery-with-dependencies_2.12-0.29.0.jar
+      
+      # The 'args' list now exactly matches the arguments expected by main.py
+      args:
+      - "--project_id"
+      - "project_id_PLACEHOLDER"
+      - "--input_gcs_path"
+      - "input_gcs_path_PLACEHOLDER"
+      - "--output_dataset"
+      - "output_dataset_PLACEHOLDER"
+      - "--bq_temp_bucket"
+      - "bq_temp_bucket_PLACEHOLDER"
+      - "--year"
+      - "YEAR_PLACEHOLDER"
+      - "--month"
+      - "MONTH_PLACEHOLDER"
+      - "--day"
+      - "DAY_PLACEHOLDER"
+      - "--hour"
+      - "HOUR_PLACEHOLDER"
+
+placement:
+  managedCluster:
+    clusterName: ephemeral-spark-cluster
+    config:
+      gceClusterConfig:
+        serviceAccount: "${DATAPROC_SA_EMAIL}"
+        serviceAccountScopes:
+          - https://www.googleapis.com/auth/cloud-platform
+      masterConfig:
+        machineTypeUri: n2-standard-2
+        numInstances: 1
+        diskConfig:
+          bootDiskSizeGb: 100
+      workerConfig:
+        machineTypeUri: n2-standard-2
+        numInstances: 2
+        diskConfig:
+          bootDiskSizeGb: 100
+      softwareConfig:
+        imageVersion: 2.1-debian11
+
+
+parameters:
+- name: PROJECT_ID
+  fields:
+  - jobs['run_spark_etl'].pysparkJob.args[1] # Maps to project_id_PLACEHOLDER
+- name: INPUT_GCS_PATH
+  fields:
+  - jobs['run_spark_etl'].pysparkJob.args[3] # Maps to input_gcs_path_PLACEHOLDER
+- name: OUTPUT_DATASET
+  fields:
+  - jobs['run_spark_etl'].pysparkJob.args[5] # Maps to output_dataset_PLACEHOLDER
+- name: BQ_TEMP_BUCKET
+  fields:
+  - jobs['run_spark_etl'].pysparkJob.args[7] # Maps to bq_temp_bucket_PLACEHOLDER
+- name: YEAR
+  fields:
+  - jobs['run_spark_etl'].pysparkJob.args[9] # Was 1, now maps to YEAR_PLACEHOLDER
+- name: MONTH
+  fields:
+  - jobs['run_spark_etl'].pysparkJob.args[11] # Was 3, now maps to MONTH_PLACEHOLDER
+- name: DAY
+  fields:
+  - jobs['run_spark_etl'].pysparkJob.args[13] # Was 5, now maps to DAY_PLACEHOLDER
+- name: HOUR
+  fields:
+  - jobs['run_spark_etl'].pysparkJob.args[15] # Was 7, now maps to HOUR_PLACEHOLDER
